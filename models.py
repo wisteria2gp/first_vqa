@@ -19,10 +19,10 @@ def vqa_model(embedding_matrix,
     ###########################
     print("Creating text model ...")
     input_txt = Input(shape=(seq_length,), name='text_input')
-    x = Embedding(num_words, embedding_dim, weight=[embedding_matrix])
-    x = LSTM(units=512, return_sequence=True, uinput_shape=(seq_length, embedding_dim))(x)
+    x = Embedding(num_words, embedding_dim, weights=[embedding_matrix] ,trainable=False)(input_txt)
+    x = LSTM(units=512, return_sequences=True, input_shape=(seq_length, embedding_dim))(x)
     x = Dropout(dropout_rate)(x)
-    x = LSTM(units=512, return_sequence=False)(x)
+    x = LSTM(units=512, return_sequences=False)(x)
     x = Dropout(dropout_rate)(x)
     output_txt = Dense(1024, activation='tanh')(x)
     txt_model = Model(input_txt, output_txt)
@@ -33,7 +33,7 @@ def vqa_model(embedding_matrix,
     ###########################
     print("Creating image model ...")
     input_img = Input(shape=(4096,), name='image_input')
-    output_img = Dense(1024, activatuion='tanh')(input_img)
+    output_img = Dense(1024, activation='tanh')(input_img)
     img_model = Model(input_img, output_img)
     img_model.summary()
 
@@ -61,5 +61,5 @@ def vqa_model(embedding_matrix,
     multiModel.summary()
 
     # optimizer
-    multiModel.compile([input_img, input_txt], output_vqa, name='multiModel')
+    multiModel.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
     return multiModel
